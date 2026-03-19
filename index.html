@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O Legado da Necrotite</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --bg-soft: rgba(10, 16, 14, 0.78);
+      --panel: rgba(9, 18, 14, 0.88);
+      --border: rgba(103, 255, 146, 0.22);
+      --text: #e9f5ec;
+      --muted: #9ab7a1;
+      --glow: #44ff88;
+      --danger: #9dff00;
+      --shadow: 0 0 30px rgba(68, 255, 136, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(68, 255, 136, 0.12), transparent 30%),
+        radial-gradient(circle at bottom, rgba(130, 255, 0, 0.08), transparent 25%),
+        linear-gradient(160deg, #020304 0%, #07100c 45%, #020304 100%);
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.03) 0,
+          rgba(255,255,255,0.03) 1px,
+          transparent 2px,
+          transparent 4px
+        );
+      mix-blend-mode: soft-light;
+      opacity: 0.25;
+    }
+
+    body::after {
+      background: radial-gradient(circle, rgba(68,255,136,0.08) 0%, transparent 60%);
+      filter: blur(40px);
+      animation: pulse 5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.08); }
+    }
+
+    .symbols {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .symbol {
+      position: absolute;
+      color: rgba(68, 255, 136, 0.2);
+      font-size: clamp(1.2rem, 2vw, 2rem);
+      animation: drift linear infinite;
+      text-shadow: 0 0 12px rgba(68,255,136,0.45);
+    }
+
+    @keyframes drift {
+      from { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      to { transform: translateY(-20vh) rotate(180deg); opacity: 0; }
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .container {
+      width: min(900px, 100%);
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(24px, 4vw, 48px);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(68,255,136,0.08), transparent 35%, transparent 65%, rgba(68,255,136,0.05));
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      letter-spacing: 0.28rem;
+      text-transform: uppercase;
+      color: var(--danger);
+      font-size: 0.78rem;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 5rem);
+      line-height: 0.95;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      text-shadow: 0 0 18px rgba(68,255,136,0.2);
+    }
+
+    .subtitle,
+    .description,
+    .hint,
+    .result-text {
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 65ch;
+    }
+
+    .subtitle {
+      margin-bottom: 28px;
+      font-size: 1.05rem;
+    }
+
+    .morse-box,
+    .code-box {
+      margin: 28px 0;
+      padding: 18px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(68,255,136,0.16);
+      background: rgba(0,0,0,0.28);
+      position: relative;
+    }
+
+    .label {
+      display: inline-block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18rem;
+      color: var(--danger);
+      margin-bottom: 10px;
+    }
+
+    .morse {
+      font-family: Consolas, monospace;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: var(--text);
+      word-break: break-word;
+      text-shadow: 0 0 10px rgba(68,255,136,0.22);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(68,255,136,0.2);
+      background: rgba(0,0,0,0.45);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    input:focus {
+      border-color: rgba(68,255,136,0.65);
+      box-shadow: 0 0 0 4px rgba(68,255,136,0.1);
+    }
+
+    button {
+      width: fit-content;
+      padding: 14px 22px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #32d96b, #9dff00);
+      color: #041108;
+      font-weight: 800;
+      letter-spacing: 0.04rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 0 20px rgba(103, 255, 146, 0.25);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 26px rgba(103, 255, 146, 0.34);
+    }
+
+    .feedback {
+      min-height: 24px;
+      font-size: 0.95rem;
+      color: #ffb3b3;
+    }
+
+    .success {
+      color: #a7ffbe;
+    }
+
+    .next-title {
+      font-size: clamp(2rem, 5vw, 4rem);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .placeholder {
+      margin-top: 24px;
+      padding: 20px;
+      border: 1px dashed rgba(68,255,136,0.28);
+      border-radius: 18px;
+      background: rgba(0,0,0,0.24);
+    }
+
+    .ghost-btn {
+      margin-top: 22px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(68,255,136,0.28);
+      box-shadow: none;
+    }
+
+    .ghost-btn:hover {
+      box-shadow: 0 0 18px rgba(68,255,136,0.14);
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 22px;
+        border-radius: 18px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle,
+      .description,
+      .hint,
+      .result-text {
+        font-size: 0.95rem;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="symbols" id="symbols"></div>
+
+  <section class="screen active" id="page-1">
+    <main class="container">
+      <p class="eyebrow">Arquivo contaminado // nível 1</p>
+      <h1>O Legado<br>da Necrotite</h1>
+      <p class="subtitle">
+        Um minério desconhecido caiu sobre a Terra. Onde toca, a carne apodrece, a mente se desfaz e a vida se curva.
+        Restaram fragmentos, códigos e um único nome capaz de abrir o próximo registro.
+      </p>
+
+      <div class="morse-box">
+        <span class="label">Mensagem interceptada em código Morse</span>
+        <p class="morse">-. --- ...- .- / . ... .--. . .-. .- -. --.- .-</p>
+      </div>
+
+      <p class="hint">Decifre a mensagem e digite a palavra-chave para acessar o próximo enigma.</p>
+
+      <form id="enigma-form">
+        <input
+          type="text"
+          id="answer"
+          placeholder="Digite a palavra-chave..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit">Desbloquear arquivo</button>
+        <p class="feedback" id="feedback"></p>
+      </form>
+    </main>
+  </section>
+
+  <section class="screen" id="page-2">
+    <main class="container">
+      <p class="eyebrow">Arquivo liberado // próximo estágio</p>
+      <h2 class="next-title">Registro 02</h2>
+      <p class="result-text">
+        Um novo fragmento foi recuperado. Responda corretamente para liberar o terceiro registro.
+      </p>
+
+      <div class="placeholder">
+        <span class="label">Enigma 02</span>
+        <p class="description" style="font-size: clamp(1.6rem, 4vw, 2.8rem); text-align: center; color: var(--text); letter-spacing: 0.08rem; margin: 8px 0 18px;">
+          líder?
+        </p>
+
+        <form id="second-form">
+          <input
+            type="text"
+            id="second-answer"
+            placeholder="Digite a resposta..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="submit">Confirmar resposta</button>
+          <p class="feedback" id="second-feedback"></p>
+        </form>
+      </div>
+
+      <button class="ghost-btn" id="backBtn">Voltar ao primeiro enigma</button>
+    </main>
+  </section>
+
+  <section class="screen" id="page-3">
+    <main class="container">
+      <p class="eyebrow">Arquivo liberado // estágio final</p>
+      <h2 class="next-title">Registro 03</h2>
+      <p class="result-text">
+        O núcleo do desastre está quase exposto. Só falta identificar a origem do colapso.
+      </p>
+
+      <div class="placeholder">
+        <span class="label">Enigma 03</span>
+        <p class="description" style="font-size: clamp(1.4rem, 4vw, 2.6rem); text-align: center; color: var(--text); letter-spacing: 0.05rem; margin: 8px 0 18px;">
+          Razão do Cataclisma
+        </p>
+
+        <form id="third-form">
+          <input
+            type="text"
+            id="third-answer"
+            placeholder="Digite a resposta final..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="submit">Confirmar resposta</button>
+          <p class="feedback" id="third-feedback"></p>
+        </form>
+      </div>
+
+      <button class="ghost-btn" id="backToSecondBtn">Voltar ao segundo enigma</button>
+    </main>
+  </section>
+
+  <section class="screen" id="page-4">
+    <main class="container">
+      <p class="eyebrow">Arquivo liberado // registro extraído</p>
+      <h2 class="next-title">Registro 04</h2>
+      <p class="result-text">
+        Mais um dado foi encontrado nos destroços. Descubra o meio pelo qual a ruína alcançou este mundo.
+      </p>
+
+      <div class="placeholder">
+        <span class="label">Enigma 04</span>
+        <p class="description" style="font-size: clamp(1.4rem, 4vw, 2.6rem); text-align: center; color: var(--text); letter-spacing: 0.05rem; margin: 8px 0 18px;">
+          Como a Necrotie chegou aqui?
+        </p>
+
+        <form id="fourth-form">
+          <input
+            type="text"
+            id="fourth-answer"
+            placeholder="Digite a resposta..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="submit">Confirmar resposta</button>
+          <p class="feedback" id="fourth-feedback"></p>
+        </form>
+      </div>
+
+      <button class="ghost-btn" id="backToThirdBtn">Voltar ao terceiro enigma</button>
+    </main>
+  </section>
+
+  <script>
+    const form = document.getElementById('enigma-form');
+    const answerInput = document.getElementById('answer');
+    const feedback = document.getElementById('feedback');
+    const page1 = document.getElementById('page-1');
+    const page2 = document.getElementById('page-2');
+    const page3 = document.getElementById('page-3');
+    const page4 = document.getElementById('page-4');
+    const backBtn = document.getElementById('backBtn');
+    const secondForm = document.getElementById('second-form');
+    const secondAnswerInput = document.getElementById('second-answer');
+    const secondFeedback = document.getElementById('second-feedback');
+    const thirdForm = document.getElementById('third-form');
+    const thirdAnswerInput = document.getElementById('third-answer');
+    const thirdFeedback = document.getElementById('third-feedback');
+    const backToSecondBtn = document.getElementById('backToSecondBtn');
+    const fourthForm = document.getElementById('fourth-form');
+    const fourthAnswerInput = document.getElementById('fourth-answer');
+    const fourthFeedback = document.getElementById('fourth-feedback');
+    const backToThirdBtn = document.getElementById('backToThirdBtn');
+    const symbolsContainer = document.getElementById('symbols');
+
+    const correctAnswers = ['nova esperanca', 'nova esperança'];
+    const secondCorrectAnswers = ['borges beifong'];
+    const thirdCorrectAnswers = ['necrotite'];
+    const fourthCorrectAnswers = ['meteoro'];
+
+    function normalizeText(text) {
+      return text
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function showPage(pageToShow) {
+      const allPages = [
+        page1,
+        page2,
+        page3,
+        page4,
+        document.getElementById('page-5')
+      ].filter(Boolean);
+
+      allPages.forEach(page => page.classList.remove('active'));
+
+      if (pageToShow) {
+        pageToShow.classList.add('active');
+      }
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const userAnswer = normalizeText(answerInput.value);
+      const isCorrect = correctAnswers.some(item => normalizeText(item) === userAnswer);
+
+      if (isCorrect) {
+        feedback.textContent = 'Acesso autorizado. Registro liberado...';
+        feedback.classList.add('success');
+        setTimeout(() => showPage(page2), 700);
+      } else {
+        feedback.textContent = 'Palavra-chave incorreta. O minério rejeitou sua tentativa.';
+        feedback.classList.remove('success');
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      answerInput.value = '';
+      feedback.textContent = '';
+      feedback.classList.remove('success');
+      secondAnswerInput.value = '';
+      secondFeedback.textContent = '';
+      secondFeedback.classList.remove('success');
+      thirdAnswerInput.value = '';
+      thirdFeedback.textContent = '';
+      thirdFeedback.classList.remove('success');
+      showPage(page1);
+    });
+
+    backToSecondBtn.addEventListener('click', () => {
+      thirdAnswerInput.value = '';
+      thirdFeedback.textContent = '';
+      thirdFeedback.classList.remove('success');
+      fourthAnswerInput.value = '';
+      fourthFeedback.textContent = '';
+      fourthFeedback.classList.remove('success');
+      showPage(page2);
+    });
+
+    backToThirdBtn.addEventListener('click', () => {
+      fourthAnswerInput.value = '';
+      fourthFeedback.textContent = '';
+      fourthFeedback.classList.remove('success');
+      showPage(page3);
+    });
+
+    secondForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const userAnswer = normalizeText(secondAnswerInput.value);
+      const isCorrect = secondCorrectAnswers.some(item => normalizeText(item) === userAnswer);
+
+      if (isCorrect) {
+        secondFeedback.textContent = 'Resposta correta. Borges Beifong foi identificado como líder.';
+        secondFeedback.classList.add('success');
+        setTimeout(() => showPage(page3), 700);
+      } else {
+        secondFeedback.textContent = 'Resposta incorreta. O arquivo ainda permanece selado.';
+        secondFeedback.classList.remove('success');
+      }
+    });
+
+    thirdForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const userAnswer = normalizeText(thirdAnswerInput.value);
+      const isCorrect = thirdCorrectAnswers.some(item => normalizeText(item) === userAnswer);
+
+      if (isCorrect) {
+        thirdFeedback.textContent = 'Resposta correta. A verdade foi revelada: Necrotite.';
+        thirdFeedback.classList.add('success');
+        setTimeout(() => showPage(page4), 700);
+      } else {
+        thirdFeedback.textContent = 'Resposta incorreta. A causa do cataclisma ainda está oculta.';
+        thirdFeedback.classList.remove('success');
+      }
+    });
+
+    fourthForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const userAnswer = normalizeText(fourthAnswerInput.value);
+      const isCorrect = fourthCorrectAnswers.some(item => normalizeText(item) === userAnswer);
+
+      if (isCorrect) {
+        fourthFeedback.textContent = 'Resposta correta. A Necrotite chegou por um meteoro.';
+        fourthFeedback.classList.add('success');
+        setTimeout(() => showPage(document.getElementById('page-5')), 900);
+      } else {
+        fourthFeedback.textContent = 'Resposta incorreta. O meio de chegada ainda permanece desconhecido.';
+        fourthFeedback.classList.remove('success');
+      }
+    });
+
+    const glyphs = ['☣', '✶', '⟡', '⌬', '△', '◈', '✦'];
+
+    for (let i = 0; i < 26; i++) {
+      const span = document.createElement('span');
+      span.className = 'symbol';
+      span.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+      span.style.left = Math.random() * 100 + 'vw';
+      span.style.animationDuration = (8 + Math.random() * 10) + 's';
+      span.style.animationDelay = (Math.random() * 8) + 's';
+      span.style.fontSize = (1 + Math.random() * 2.2) + 'rem';
+      symbolsContainer.appendChild(span);
+    }
+  </script>
+
+  <section class="screen" id="page-5">
+    <main class="container" style="text-align:center;">
+      <p class="eyebrow">Transmissão desconhecida...</p>
+      <h2 class="next-title" style="font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: 0.15rem;">
+        Nós observamos
+      </h2>
+      <p class="result-text" style="margin-top: 18px; opacity: 0.6;">
+      </p>
+    </main>
+  </section>
+</body>
+</html>
